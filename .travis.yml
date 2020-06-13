@@ -1,0 +1,35 @@
+#this file is for travis-ci to tell it how to handle our project
+language: node
+node_js:
+  - 10
+sudo: required
+#this tells to give authority of sudo level
+
+services:
+  - docker
+#this tells to give docker copy
+
+before_install:
+  - docker build -t khuzama98/simple-react-app -f Dockerfile.dev .
+
+script:
+  - docker run -e CI=true khuzama98/simple-react-app npm run test
+#this tells to run test and -- --coverage is to tell npm to return the status code 
+#but -- --coverage not working so using "-e CI=true"
+#of test and close itself otherwise npm won't closes it's self and stays open and
+#travis won't know did the test pass or fail
+
+before_deploy: "echo $AWS_ACCESS_KEY  ---  $AWS_SECRET_KEY"
+
+
+deploy:
+  provider: elasticbeanstalk
+  region: "ca-central-1"
+  app: "workshop-ci-cd"
+  env: "WorkshopCiCd-env"
+  bucket: "elasticbeanstalk-ca-central-1-741302124457"
+  bucket_path: "workshop-ci-cd"
+  on:
+    branch: master
+  access_key_id: "$AWS_ACCESS_KEY"
+  secret_access_key: "$AWS_SECRET_KEY"
